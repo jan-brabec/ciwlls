@@ -48,7 +48,7 @@ classdef (Abstract) LogLinear
     %    5. Prior to publication of research involving the Software, the
     %    Recipient shall inform the Authors listed above.
     %
-    
+
     properties (Access = public, Constant = false)
         A
         iter
@@ -57,7 +57,7 @@ classdef (Abstract) LogLinear
         init_weight
         init_estimator
     end
-    
+
     methods (Access = public, Static = false)
         function obj = LogLinear(A, Aneq, bneq, varargin)
             fprintf(1, 'Setting up generic exp(A*x) model ...\n');
@@ -69,15 +69,15 @@ classdef (Abstract) LogLinear
             p.addOptional('init_weight', 'data');
             p.addOptional('iter', 2);
             p.parse(varargin{:});
-            
+
             obj.estimatorname = p.Results.estimator;
             obj.init_estimator = p.Results.init_estimator;
-            
+
             if strcmp(obj.estimatorname, 'wlls')
                 obj.init_weight = p.Results.init_weight;
                 obj.iter = p.Results.iter;
             end
-            
+
             switch obj.estimatorname
                 case 'lls'
                     obj.estimator = LLS(obj.A, Aneq, bneq, [], []);
@@ -90,7 +90,7 @@ classdef (Abstract) LogLinear
                     error('estimator not supported!')
             end
         end
-        
+
         function x = solve(obj, y, x0)
             if ndims(y) ~= 2; [y, mask] = Volumes.vec(y); if nargin > 2; x0 = Volumes.vec(x0,mask); end; end %#ok<*ISMAT>
             y = double(y); if nargin > 2; x0 = double(x0); end
@@ -114,6 +114,8 @@ classdef (Abstract) LogLinear
                     end
                     for it = 1:obj.iter
                         fprintf(1, 'Iterative reweighting #%i...\n', it);
+
+                        disp('Predicted')
                         x = obj.estimator.solve(logy, obj.predict(x));
                     end
                 case 'nls'
@@ -131,13 +133,16 @@ classdef (Abstract) LogLinear
             x(1, :) = x(1, :) - log(f);
             if exist('mask','var'); x = Volumes.unvec(x, mask); end
         end
-        
+
         function y = predict(obj, x)
             if ndims(x) ~= 2; [x, mask] = Volumes.vec(x); end
             y = exp(obj.A*x);
+
+            disp('All predicted values above 99th percentile set to 99th percentile to avoid inf')
+            y(y>prctile(y(:), 99)) = prctile(y(:), 99);
             if exist('mask','var'); y = Volumes.unvec(y, mask); end
         end
-        
+
         function [f, g] = ssd(obj, x, y)
             if nargin == 1
                 f = size(obj.A,2);
