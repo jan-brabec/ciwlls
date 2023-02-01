@@ -10,7 +10,6 @@ if (0)
 
 end
 
-data_path = fullfile('..','..','MS_study_JHU','data','interim','HC','R01_MOCT1543_221118','std_20221118_102215791');
 s_struc = mdm_s_from_nii(fullfile(data_path,'FWF_topup.nii.gz'));
 
 [y,header] = mdm_nii_read(s_struc.nii_fn);
@@ -19,7 +18,6 @@ grad(:,1:3) = s_struc.xps.u;
 grad(:,4)   = s_struc.xps.b / 1e9;
 grad(:,5)   = s_struc.xps.b_delta;
 
-mask_data_path = fullfile('..','..','MS_study_JHU','data','processed','HC','R01_MOCT1543_221118','std_20221118_102215791');
 mask = mdm_nii_read(fullfile(mask_data_path,'mask_drawn.nii.gz'));
 
 
